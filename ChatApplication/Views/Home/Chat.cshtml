@@ -1,0 +1,74 @@
+﻿@{
+    ViewBag.Title = "Chat";
+    Layout = null;
+}
+
+<h2>STUDYXNET Chat - Signal R</h2>
+
+<style type="text/css">
+    .container {
+        background-color: #99CCFF;
+        border: thick solid #808080;
+        padding: 20px;
+        margin: 20px;
+    }
+</style>
+
+
+<div class="container">
+    <input type="text" id="message" />
+    <input type="button" id="sendmessage" value="Send" />
+    <input type="hidden" id="displayname" />
+    <ul id="discussion"></ul>
+</div>
+
+<!--   ASP.NET MVC 3   -->
+@*<script src='@Url.Content("~/Scripts/jquery-2.1.4.min.js")'></script>
+    <script src='@Url.Content("~/Scripts/jquery.signalR-2.2.0.js")'></script>
+    <script src='@Url.Content("~/signalr/hubs")'></script>*@
+
+<!--   ASP.NET MVC 4+   -->
+<script src="~/Scripts/jquery-2.1.4.min.js"></script>
+<script src="~/Scripts/jquery.signalR-2.2.0.min.js"></script>
+<script src="~/signalr/hubs"></script>
+
+<script type="text/javascript">
+    $(function () {
+        // Proxy que se referencia a classe "ChatHub".
+        var chat = $.connection.chatHub;
+
+        var roomName = "PrivateRoom";
+        
+
+        // Função para a chamada do "broadcastMessage".
+        chat.client.getMessage = function (name, message) {
+
+            // Encode.
+            var encodedName = $('<div />').text(name).html();
+            var encodedMsg = $('<div />').text(message).html();
+
+            // Adiciona mensagem na lista.
+            $('#discussion').append('<li><strong>' + encodedName
+                + '</strong>:  ' + encodedMsg + '</li>');
+        };
+
+        // Nome do usuário no chat.
+        $('#displayname').val(prompt('Nome:', ''));
+
+        $('#message').focus();        
+
+        // Inicia a conexão.
+        $.connection.hub.start().done(function () {
+
+            chat.server.joinRoom(roomName);
+
+            $('#sendmessage').click(function () {
+                
+                // Chamada do método "Send".
+                chat.server.sendMessage($('#displayname').val(), $('#message').val(),roomName);
+
+                $('#message').val('').focus();
+            });
+        });
+    });
+</script>
